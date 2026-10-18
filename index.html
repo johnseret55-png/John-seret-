@@ -8,12 +8,20 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="John Seret">
+<script>
+(function () { try {
+  var p = JSON.parse(localStorage.getItem('js-prefs') || '{}'), h = document.documentElement;
+  if (p.theme === 'light' || p.theme === 'dark') h.setAttribute('data-theme', p.theme);
+  if (p.font && p.font !== 'default') h.setAttribute('data-font', p.font);
+  if (p.accent && p.accent !== 'indigo') h.setAttribute('data-accent', p.accent);
+} catch (e) {} })();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&family=Lora:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap">
 <style>
 /* Layout: private vault. Header with name and quick actions, four tabs, one panel at a time, settings panel opened from the header. All data lives on this phone. */
 :root {
@@ -25,11 +33,38 @@
   --font-mono: "DM Mono", ui-monospace, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0e121b; --surface: #161c28; --field: #111621; --fg: #e8ecf4; --muted: #94a0b6;
     --line: #2a3345; --accent: #8c9bff; --accent-ink: #0d1230; --accent-soft: #232a4d; --danger: #ff8a80;
   }
 }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e121b; --surface: #161c28; --field: #111621; --fg: #e8ecf4; --muted: #94a0b6;
+  --line: #2a3345; --accent: #8c9bff; --accent-ink: #0d1230; --accent-soft: #232a4d; --danger: #ff8a80;
+}
+:root[data-theme="light"] { color-scheme: light; }
+
+/* Fonts */
+:root[data-font="classic"] { --font-display: "Lora", Georgia, serif; --font-body: "Lora", Georgia, serif; }
+:root[data-font="soft"] { --font-display: "Nunito", system-ui, sans-serif; --font-body: "Nunito", system-ui, sans-serif; }
+:root[data-font="typewriter"] { --font-display: "DM Mono", ui-monospace, Menlo, Consolas, monospace; --font-body: "DM Mono", ui-monospace, Menlo, Consolas, monospace; }
+
+/* Accent colors. Indigo is the default above. */
+:root[data-accent="teal"] { --accent: #0f766e; --accent-ink: #ffffff; --accent-soft: #d5f0ec; }
+:root[data-accent="rose"] { --accent: #be185d; --accent-ink: #ffffff; --accent-soft: #fbe0ec; }
+:root[data-accent="amber"] { --accent: #b45309; --accent-ink: #ffffff; --accent-soft: #fbe8cc; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"])[data-accent="teal"] { --accent: #5eead4; --accent-ink: #042f2c; --accent-soft: #12332f; }
+  :root:not([data-theme="light"])[data-accent="rose"] { --accent: #f9a8d4; --accent-ink: #3b0a21; --accent-soft: #3a1727; }
+  :root:not([data-theme="light"])[data-accent="amber"] { --accent: #fbbf24; --accent-ink: #2b1a02; --accent-soft: #3a2a0c; }
+}
+:root[data-theme="dark"][data-accent="teal"] { --accent: #5eead4; --accent-ink: #042f2c; --accent-soft: #12332f; }
+:root[data-theme="dark"][data-accent="rose"] { --accent: #f9a8d4; --accent-ink: #3b0a21; --accent-soft: #3a1727; }
+:root[data-theme="dark"][data-accent="amber"] { --accent: #fbbf24; --accent-ink: #2b1a02; --accent-soft: #3a2a0c; }
+.swatches { display: flex; gap: 12px; flex-wrap: wrap; padding: 4px 2px; }
+.sw { width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 2px solid var(--surface); }
+.sw[aria-pressed="true"] { outline: 3px solid var(--fg); outline-offset: 2px; }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
@@ -205,13 +240,24 @@ label { font-size: 14px; font-weight: 500; }
   <section class="card" id="p-settings" aria-label="Settings" hidden>
     <div class="head"><h2>Settings</h2><button type="button" class="ghost small" id="closeSet">Done</button></div>
 
+    <h3>Appearance</h3>
+    <div class="row">
+      <div class="field"><label for="setTheme">Theme</label>
+        <select id="setTheme"><option value="auto">Match my phone</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+      <div class="field"><label for="setFont">Font</label>
+        <select id="setFont"><option value="default">Syne and DM Sans</option><option value="classic">Lora (serif)</option><option value="soft">Nunito (rounded)</option><option value="typewriter">DM Mono (typewriter)</option></select></div>
+    </div>
+    <div class="field"><span id="accLab" style="font-size:14px;font-weight:500">Accent color</span><div class="swatches" id="swatches" role="group" aria-labelledby="accLab"></div></div>
+
     <h3>Screen lock</h3>
-    <p class="hint" id="pinHint">Ask for a PIN when you open the app or come back to it after 30 seconds. This keeps people who borrow your phone out. It does not encrypt your files.</p>
+    <p class="hint" id="pinHint">Ask for a PIN when you open the app or come back to it. This keeps people who borrow your phone out. It does not encrypt your files.</p>
     <form id="pinForm" class="row" style="align-items:end">
       <div class="field"><label for="pinIn">New PIN (4 to 8 digits)</label><input type="password" id="pinIn" inputmode="numeric" autocomplete="new-password" maxlength="8" pattern="[0-9]*"></div>
       <div class="btns"><button type="submit">Save PIN</button><button type="button" class="danger" id="pinOff" hidden>Remove PIN</button></div>
     </form>
     <div class="status" id="pinStatus" role="status"></div>
+    <div class="field"><label for="setDelay">Ask for the PIN when I come back after</label>
+      <select id="setDelay"><option value="0">Right away</option><option value="30">30 seconds</option><option value="60">1 minute</option><option value="300">5 minutes</option><option value="-1">Never, only when I tap Lock</option></select></div>
 
     <h3>Storage</h3>
     <p class="hint" id="storeInfo">Checking…</p>
@@ -571,7 +617,7 @@ label { font-size: 14px; font-weight: 500; }
     });
   });
   $('exportBtn').addEventListener('click', function () {
-    var data = JSON.stringify({ app: 'john-seret', version: 1, exported: new Date().toISOString(), notes: notes, records: records }, null, 1);
+    var data = JSON.stringify({ app: 'john-seret', version: 1, exported: new Date().toISOString(), notes: notes, records: records, prefs: prefs }, null, 1);
     var blob = new Blob([data], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
     a.href = url; a.download = 'john-seret-backup-' + today() + '.json'; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
@@ -585,12 +631,42 @@ label { font-size: 14px; font-weight: 500; }
       var added = 0, jobs = [];
       (d.notes || []).forEach(function (n) { if (n && n.id && !notes.some(function (x) { return x.id === n.id; })) { notes.push(n); jobs.push(store.put('notes', n)); added++; } });
       (d.records || []).forEach(function (r) { if (r && r.id && !records.some(function (x) { return x.id === r.id; })) { records.push(r); jobs.push(store.put('records', r)); added++; } });
+      if (d.prefs && typeof d.prefs === 'object') { Object.keys(prefs).forEach(function (k) { if (d.prefs[k] !== undefined) prefs[k] = d.prefs[k]; }); applyPrefs(); savePrefs(); renderPrefsUi(); }
       return Promise.all(jobs).then(function () { renderNotes(); renderRecords(); say('backupStatus', added + ' items restored. Items already here were kept.'); });
     }).catch(function () { say('backupStatus', 'That is not a John Seret backup file.', true); })
       .then(function () { $('importIn').value = ''; });
   });
 
+  /* ---------- Look and lock preferences ---------- */
+  var prefs = { theme: 'auto', font: 'default', accent: 'indigo', lockDelay: 30 };
+  try { var sp = JSON.parse(localStorage.getItem('js-prefs') || '{}'); Object.keys(prefs).forEach(function (k) { if (sp[k] !== undefined) prefs[k] = sp[k]; }); } catch (e) {}
+  var ACCENTS = { indigo: '#3446c8', teal: '#0f766e', rose: '#be185d', amber: '#b45309' };
+  function savePrefs() { try { localStorage.setItem('js-prefs', JSON.stringify(prefs)); } catch (e) {} }
+  function applyPrefs() {
+    var h = document.documentElement;
+    if (prefs.theme === 'light' || prefs.theme === 'dark') h.setAttribute('data-theme', prefs.theme); else h.removeAttribute('data-theme');
+    if (prefs.font !== 'default') h.setAttribute('data-font', prefs.font); else h.removeAttribute('data-font');
+    if (prefs.accent !== 'indigo') h.setAttribute('data-accent', prefs.accent); else h.removeAttribute('data-accent');
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', ACCENTS[prefs.accent] || '#3446c8');
+  }
+  function renderPrefsUi() {
+    $('setTheme').value = prefs.theme; $('setFont').value = prefs.font; $('setDelay').value = String(prefs.lockDelay);
+    Array.prototype.forEach.call($('swatches').children, function (b) { b.setAttribute('aria-pressed', b.dataset.accent === prefs.accent ? 'true' : 'false'); });
+  }
+  Object.keys(ACCENTS).forEach(function (k) {
+    var b = el('button', 'sw'); b.type = 'button'; b.dataset.accent = k; b.style.background = ACCENTS[k];
+    b.setAttribute('aria-label', k.charAt(0).toUpperCase() + k.slice(1)); b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function () { prefs.accent = k; applyPrefs(); savePrefs(); renderPrefsUi(); });
+    $('swatches').appendChild(b);
+  });
+  $('setTheme').addEventListener('change', function () { prefs.theme = $('setTheme').value; applyPrefs(); savePrefs(); });
+  $('setFont').addEventListener('change', function () { prefs.font = $('setFont').value; applyPrefs(); savePrefs(); });
+  $('setDelay').addEventListener('change', function () { prefs.lockDelay = parseInt($('setDelay').value, 10); savePrefs(); });
+  applyPrefs(); renderPrefsUi();
+
   /* ---------- Screen lock ---------- */
+  var fails = 0, lockUntil = 0;
   var pin = null, hiddenAt = 0;
   var canHash = !!(window.crypto && crypto.subtle);
   function hashPin(p, salt) {
@@ -608,9 +684,15 @@ label { font-size: 14px; font-weight: 500; }
   $('lockForm').addEventListener('submit', function (e) {
     e.preventDefault();
     if (!pin) return;
+    var wait = lockUntil - Date.now();
+    if (wait > 0) { $('lockErr').textContent = 'Too many tries. Wait ' + Math.ceil(wait / 1000) + ' seconds.'; return; }
     hashPin($('lockPin').value, pin.salt).then(function (h) {
-      if (h === pin.hash) { $('lock').hidden = true; $('lockErr').textContent = ''; }
-      else { $('lockErr').textContent = 'Wrong PIN. Try again.'; $('lockPin').value = ''; }
+      if (h === pin.hash) { fails = 0; $('lock').hidden = true; $('lockErr').textContent = ''; }
+      else {
+        fails++; $('lockPin').value = '';
+        if (fails >= 5) { fails = 0; lockUntil = Date.now() + 30000; $('lockErr').textContent = 'Too many tries. Wait 30 seconds.'; }
+        else $('lockErr').textContent = 'Wrong PIN. Try again.';
+      }
     });
   });
   $('pinForm').addEventListener('submit', function (e) {
@@ -622,14 +704,14 @@ label { font-size: 14px; font-weight: 500; }
     hashPin(v, salt).then(function (h) {
       pin = { id: 'pin', salt: salt, hash: h };
       return store.put('meta', pin);
-    }).then(function () { $('pinIn').value = ''; say('pinStatus', 'PIN saved. The app will lock after 30 seconds away.'); syncPinUi(); });
+    }).then(function () { $('pinIn').value = ''; say('pinStatus', 'PIN saved.'); syncPinUi(); });
   });
   $('pinOff').addEventListener('click', function () {
     store.del('meta', 'pin').then(function () { pin = null; syncPinUi(); say('pinStatus', 'PIN removed.'); });
   });
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) hiddenAt = Date.now();
-    else if (pin && hiddenAt && Date.now() - hiddenAt > 30000) lockNow();
+    else if (pin && hiddenAt && prefs.lockDelay >= 0 && Date.now() - hiddenAt >= prefs.lockDelay * 1000) lockNow();
   });
 
   /* ---------- Install ---------- */

@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>John Seret</title>
+<meta name="theme-color" content="#3446c8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="John Seret">
+<script>
+(function () { try {
+  var p = JSON.parse(localStorage.getItem('js-prefs') || '{}'), h = document.documentElement;
+  if (p.theme === 'light' || p.theme === 'dark') h.setAttribute('data-theme', p.theme);
+  if (p.font && p.font !== 'default') h.setAttribute('data-font', p.font);
+  if (p.accent && p.accent !== 'indigo') h.setAttribute('data-accent', p.accent);
+} catch (e) {} })();
+</script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&family=Lora:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: private vault. Header with name and quick actions, four tabs, one panel at a time, settings panel opened from the header. All data lives on this phone. */
+:root {
+  color-scheme: light dark;
+  --bg: #eff1f5; --surface: #ffffff; --field: #f6f7fa; --fg: #111827; --muted: #5d6779;
+  --line: #d6dbe4; --accent: #3446c8; --accent-ink: #ffffff; --accent-soft: #e0e4fb; --danger: #b3261e;
+  --font-display: "Syne", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e121b; --surface: #161c28; --field: #111621; --fg: #e8ecf4; --muted: #94a0b6;
+    --line: #2a3345; --accent: #8c9bff; --accent-ink: #0d1230; --accent-soft: #232a4d; --danger: #ff8a80;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e121b; --surface: #161c28; --field: #111621; --fg: #e8ecf4; --muted: #94a0b6;
+  --line: #2a3345; --accent: #8c9bff; --accent-ink: #0d1230; --accent-soft: #232a4d; --danger: #ff8a80;
+}
+:root[data-theme="light"] { color-scheme: light; }
+
+/* Fonts */
+:root[data-font="classic"] { --font-display: "Lora", Georgia, serif; --font-body: "Lora", Georgia, serif; }
+:root[data-font="soft"] { --font-display: "Nunito", system-ui, sans-serif; --font-body: "Nunito", system-ui, sans-serif; }
+:root[data-font="typewriter"] { --font-display: "DM Mono", ui-monospace, Menlo, Consolas, monospace; --font-body: "DM Mono", ui-monospace, Menlo, Consolas, monospace; }
+
+/* Accent colors. Indigo is the default above. */
+:root[data-accent="teal"] { --accent: #0f766e; --accent-ink: #ffffff; --accent-soft: #d5f0ec; }
+:root[data-accent="rose"] { --accent: #be185d; --accent-ink: #ffffff; --accent-soft: #fbe0ec; }
+:root[data-accent="amber"] { --accent: #b45309; --accent-ink: #ffffff; --accent-soft: #fbe8cc; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"])[data-accent="teal"] { --accent: #5eead4; --accent-ink: #042f2c; --accent-soft: #12332f; }
+  :root:not([data-theme="light"])[data-accent="rose"] { --accent: #f9a8d4; --accent-ink: #3b0a21; --accent-soft: #3a1727; }
+  :root:not([data-theme="light"])[data-accent="amber"] { --accent: #fbbf24; --accent-ink: #2b1a02; --accent-soft: #3a2a0c; }
+}
+:root[data-theme="dark"][data-accent="teal"] { --accent: #5eead4; --accent-ink: #042f2c; --accent-soft: #12332f; }
+:root[data-theme="dark"][data-accent="rose"] { --accent: #f9a8d4; --accent-ink: #3b0a21; --accent-soft: #3a1727; }
+:root[data-theme="dark"][data-accent="amber"] { --accent: #fbbf24; --accent-ink: #2b1a02; --accent-soft: #3a2a0c; }
+.swatches { display: flex; gap: 12px; flex-wrap: wrap; padding: 4px 2px; }
+.sw { width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 2px solid var(--surface); }
+.sw[aria-pressed="true"] { outline: 3px solid var(--fg); outline-offset: 2px; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-top: max(20px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(48px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+[hidden] { display: none !important; }
+.wrap { max-width: 920px; margin: 0 auto; display: grid; gap: 16px; }
+.top { display: flex; justify-content: space-between; align-items: end; gap: 12px; }
+.date { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(34px, 9vw, 60px); line-height: 0.98; letter-spacing: -0.03em; margin: 4px 0 0; }
+.quick { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+button, .btn {
+  font: inherit; font-weight: 600; cursor: pointer; border-radius: 6px; padding: 10px 16px;
+  border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink);
+  text-decoration: none; display: inline-block; text-align: center;
+}
+button.ghost, .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+button.danger { background: transparent; color: var(--danger); border-color: var(--line); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:focus-visible, .btn:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.small { padding: 6px 12px; font-size: 14px; }
+
+.tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.tab { background: var(--surface); color: var(--muted); border-color: var(--line); padding: 10px 4px; font-size: 15px; font-weight: 500; }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px max(14px, 3vw); display: grid; gap: 14px; min-width: 0; }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+h2 { font-family: var(--font-display); font-size: 21px; margin: 0; letter-spacing: -0.01em; }
+h3 { font-family: var(--font-display); font-size: 16px; margin: 6px 0 0; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.status { font-size: 13px; color: var(--muted); font-family: var(--font-mono); min-height: 1.3em; overflow-wrap: anywhere; }
+.status.bad { color: var(--danger); }
+.filein { position: absolute; opacity: 0; width: 1px; height: 1px; overflow: hidden; }
+.filein:focus-visible + label { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+input[type="text"], input[type="date"], input[type="search"], input[type="password"], select, textarea {
+  font: inherit; color: var(--fg); background: var(--field);
+  border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; min-width: 0; width: 100%;
+}
+textarea { min-height: 220px; resize: vertical; }
+label { font-size: 14px; font-weight: 500; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.empty { color: var(--muted); padding: 6px 2px; }
+
+.notes { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 760px) { .notes { grid-template-columns: 270px minmax(0, 1fr); } }
+.notes[data-view="list"] .editor { display: none; }
+.notes[data-view="edit"] .nlist { display: none; }
+@media (min-width: 760px) { .notes .editor:not([hidden]), .notes .nlist { display: grid !important; } .back { display: none; } }
+.nlist, .editor { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.nitem { text-align: left; background: var(--field); color: var(--fg); border: 1px solid var(--line); font-weight: 400; display: grid; gap: 2px; min-width: 0; }
+.nitem[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.nitem b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nitem span { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.title-in { font-family: var(--font-display); font-weight: 700; font-size: 20px; }
+
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); min-width: 0; }
+.item .name { font-weight: 600; overflow-wrap: anywhere; }
+.item .meta { font-size: 13px; color: var(--muted); font-family: var(--font-mono); overflow-wrap: anywhere; }
+.item .body { font-size: 15px; color: var(--muted); overflow-wrap: anywhere; white-space: pre-wrap; }
+.item .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; color: var(--muted); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.tile { position: relative; padding: 0; border: 1px solid var(--line); background: var(--field); aspect-ratio: 1; border-radius: 8px; overflow: hidden; color: var(--muted); }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tile .play { position: absolute; left: 6px; bottom: 6px; background: rgba(0,0,0,0.7); color: #fff; font-family: var(--font-mono); font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+.tile .ph { display: grid; place-items: center; height: 100%; font-family: var(--font-mono); font-size: 12px; padding: 6px; text-align: center; overflow-wrap: anywhere; }
+
+#lb { position: fixed; inset: 0; z-index: 50; background: rgba(5,8,14,0.95); display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 10px;
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
+#lb .bar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; color: #fff; align-items: center; }
+#lb .name { font-family: var(--font-mono); font-size: 13px; overflow-wrap: anywhere; min-width: 0; }
+#lbBody { min-height: 0; display: grid; place-items: center; }
+#lbBody img, #lbBody video { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+#lock { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: grid; place-items: center; padding: 24px; }
+#lock form { width: min(340px, 100%); display: grid; gap: 14px; }
+#lock h2 { font-size: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="date" id="date"></div>
+      <h1>John Seret</h1>
+    </div>
+    <div class="quick">
+      <button type="button" class="small" id="installBtn" hidden>Install app</button>
+      <button type="button" class="ghost small" id="lockBtn" hidden>Lock</button>
+      <button type="button" class="ghost small" id="setBtn">Settings</button>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="notes" aria-selected="true">Notes</button>
+    <button class="tab" role="tab" data-tab="records" aria-selected="false">Records</button>
+    <button class="tab" role="tab" data-tab="docs" aria-selected="false">Documents</button>
+    <button class="tab" role="tab" data-tab="media" aria-selected="false">Media</button>
+  </div>
+
+  <section class="card" id="p-notes" role="tabpanel" aria-label="Notes">
+    <div class="head"><h2>Notes</h2><button type="button" id="newNote">New note</button></div>
+    <div class="notes" id="notesBox" data-view="list">
+      <div class="nlist" id="nlist"></div>
+      <div class="editor" id="editor" hidden>
+        <button type="button" class="ghost small back" id="backBtn">Back to notes</button>
+        <input type="text" class="title-in" id="nTitle" placeholder="Title" aria-label="Note title">
+        <textarea id="nBody" placeholder="Write here." aria-label="Note text"></textarea>
+        <div class="head"><span class="status" id="nStatus" role="status"></span><button type="button" class="danger small" id="nDelete">Delete note</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="p-records" role="tabpanel" aria-label="Records" hidden>
+    <div class="head"><h2>Records</h2><p class="hint">Payments, appointments, contacts, anything to track.</p></div>
+    <form id="recForm" style="display:grid;gap:12px">
+      <div class="row">
+        <div class="field"><label for="rTitle">What is it?</label><input type="text" id="rTitle" placeholder="e.g. School fees, term 1" required></div>
+        <div class="field"><label for="rCat">Category</label><select id="rCat"></select></div>
+        <div class="field"><label for="rDate">Date</label><input type="date" id="rDate" required></div>
+      </div>
+      <div class="field"><label for="rDetails">Details <span class="hint">(optional)</span></label><textarea id="rDetails" style="min-height:70px" placeholder="Amounts, names, reference numbers."></textarea></div>
+      <div><button type="submit">Save record</button></div>
+    </form>
+    <div class="row">
+      <div class="field"><label for="rSearch">Search</label><input type="search" id="rSearch" placeholder="Search records"></div>
+      <div class="field"><label for="rFilter">Show</label><select id="rFilter"><option value="">All categories</option></select></div>
+    </div>
+    <ul class="list" id="recList"></ul>
+  </section>
+
+  <section class="card" id="p-docs" role="tabpanel" aria-label="Documents" hidden>
+    <div class="head"><h2>Documents</h2>
+      <div class="btns">
+        <input type="file" id="docIn" class="filein" multiple>
+        <label class="btn" for="docIn">Add documents</label>
+        <input type="file" id="scanIn" class="filein" accept="image/*" capture="environment">
+        <label class="btn ghost" for="scanIn">Scan with camera</label>
+      </div>
+    </div>
+    <p class="hint">Any file type: PDF, Word, Excel, text and more. Scans are saved as photos of the page.</p>
+    <div class="status" id="docStatus" role="status"></div>
+    <ul class="list" id="docList"></ul>
+  </section>
+
+  <section class="card" id="p-media" role="tabpanel" aria-label="Media" hidden>
+    <div class="head"><h2>Photos and videos</h2>
+      <div class="btns">
+        <input type="file" id="mediaIn" class="filein" multiple accept="image/*,video/*">
+        <label class="btn" for="mediaIn">Add from phone</label>
+        <input type="file" id="photoIn" class="filein" accept="image/*" capture="environment">
+        <label class="btn ghost" for="photoIn">Take photo</label>
+        <input type="file" id="videoIn" class="filein" accept="video/*" capture="environment">
+        <label class="btn ghost" for="videoIn">Record video</label>
+      </div>
+    </div>
+    <div class="status" id="mediaStatus" role="status"></div>
+    <div class="grid" id="mediaGrid"></div>
+  </section>
+
+  <section class="card" id="p-settings" aria-label="Settings" hidden>
+    <div class="head"><h2>Settings</h2><button type="button" class="ghost small" id="closeSet">Done</button></div>
+
+    <h3>Appearance</h3>
+    <div class="row">
+      <div class="field"><label for="setTheme">Theme</label>
+        <select id="setTheme"><option value="auto">Match my phone</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+      <div class="field"><label for="setFont">Font</label>
+        <select id="setFont"><option value="default">Syne and DM Sans</option><option value="classic">Lora (serif)</option><option value="soft">Nunito (rounded)</option><option value="typewriter">DM Mono (typewriter)</option></select></div>
+    </div>
+    <div class="field"><span id="accLab" style="font-size:14px;font-weight:500">Accent color</span><div class="swatches" id="swatches" role="group" aria-labelledby="accLab"></div></div>
+
+    <h3>Screen lock</h3>
+    <p class="hint" id="pinHint">Ask for a PIN when you open the app or come back to it. This keeps people who borrow your phone out. It does not encrypt your files.</p>
+    <form id="pinForm" class="row" style="align-items:end">
+      <div class="field"><label for="pinIn">New PIN (4 to 8 digits)</label><input type="password" id="pinIn" inputmode="numeric" autocomplete="new-password" maxlength="8" pattern="[0-9]*"></div>
+      <div class="btns"><button type="submit">Save PIN</button><button type="button" class="danger" id="pinOff" hidden>Remove PIN</button></div>
+    </form>
+    <div class="status" id="pinStatus" role="status"></div>
+    <div class="field"><label for="setDelay">Ask for the PIN when I come back after</label>
+      <select id="setDelay"><option value="0">Right away</option><option value="30">30 seconds</option><option value="60">1 minute</option><option value="300">5 minutes</option><option value="-1">Never, only when I tap Lock</option></select></div>
+
+    <h3>Storage</h3>
+    <p class="hint" id="storeInfo">Checking…</p>
+    <div class="btns"><button type="button" class="ghost" id="persistBtn">Protect my data from automatic cleanup</button></div>
+    <div class="status" id="persistStatus" role="status"></div>
+
+    <h3>Backup</h3>
+    <p class="hint">The backup file holds your notes and records. Photos, videos and documents stay on this phone only. Use Share on a file to copy it elsewhere.</p>
+    <div class="btns">
+      <button type="button" id="exportBtn">Save backup of notes and records</button>
+      <input type="file" id="importIn" class="filein" accept="application/json,.json">
+      <label class="btn ghost" for="importIn">Restore from backup</label>
+    </div>
+    <div class="status" id="backupStatus" role="status"></div>
+
+    <p class="hint">Everything is stored inside this app on this phone. Clearing Chrome's site data or uninstalling the app erases it, so keep a backup.</p>
+  </section>
+</div>
+
+<div id="lb" hidden role="dialog" aria-modal="true" aria-label="Media viewer">
+  <div class="bar">
+    <span class="name" id="lbName"></span>
+    <span class="btns">
+      <button type="button" class="ghost small" id="lbShare" style="color:#fff;border-color:#888" hidden>Share</button>
+      <button type="button" class="ghost small" id="lbSave" style="color:#fff;border-color:#888">Save copy</button>
+      <button type="button" class="danger small" id="lbDel">Delete</button>
+      <button type="button" class="ghost small" id="lbClose" style="color:#fff;border-color:#888">Close</button>
+    </span>
+  </div>
+  <div id="lbBody"></div>
+</div>
+
+<div id="lock" hidden>
+  <form id="lockForm">
+    <h2>John Seret</h2>
+    <label for="lockPin">Enter your PIN</label>
+    <input type="password" id="lockPin" inputmode="numeric" autocomplete="current-password" maxlength="8" pattern="[0-9]*">
+    <div class="status bad" id="lockErr" role="alert"></div>
+    <button type="submit">Unlock</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function today() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function fmtDate(v) { var d = typeof v === 'number' ? new Date(v) : new Date(v + 'T00:00:00'); return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+  function fmtSize(b) { return b > 1073741824 ? (b / 1073741824).toFixed(1) + ' GB' : b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB'; }
+  function say(id, text, bad) { var s = $(id); s.textContent = text; s.className = 'status' + (bad ? ' bad' : ''); }
+  function armDelete(btn, action) {
+    var t = null, label = btn.textContent;
+    btn.addEventListener('click', function () {
+      if (btn.dataset.arm) { clearTimeout(t); btn.dataset.arm = ''; btn.textContent = label; action(); return; }
+      btn.dataset.arm = '1'; btn.textContent = 'Tap again to delete';
+      t = setTimeout(function () { btn.dataset.arm = ''; btn.textContent = label; }, 3000);
+    });
+  }
+
+  /* ---------- Storage (IndexedDB) ---------- */
+  var dbp = new Promise(function (res, rej) {
+    var r = indexedDB.open('john-seret', 1);
+    r.onupgradeneeded = function () { ['notes', 'records', 'files', 'blobs', 'meta'].forEach(function (n) { r.result.createObjectStore(n, { keyPath: 'id' }); }); };
+    r.onsuccess = function () { res(r.result); };
+    r.onerror = function () { rej(r.error); };
+  });
+  function tx(store, mode, fn) {
+    return dbp.then(function (d) {
+      return new Promise(function (res, rej) {
+        var t = d.transaction(store, mode), out, rq = fn(t.objectStore(store));
+        if (rq) rq.onsuccess = function () { out = rq.result; };
+        t.oncomplete = function () { res(out); };
+        t.onerror = t.onabort = function () { rej(t.error); };
+      });
+    });
+  }
+  var store = {
+    all: function (s) { return tx(s, 'readonly', function (o) { return o.getAll(); }); },
+    get: function (s, id) { return tx(s, 'readonly', function (o) { return o.get(id); }); },
+    put: function (s, v) { return tx(s, 'readwrite', function (o) { return o.put(v); }); },
+    del: function (s, id) { return tx(s, 'readwrite', function (o) { return o.delete(id); }); }
+  };
+  function fail(e, id) {
+    var full = e && (e.name === 'QuotaExceededError' || /quota/i.test(String(e.message || '')));
+    say(id, full ? 'Your phone storage is full. Delete something to make room.' : 'Could not save. Try again.', true);
+  }
+
+  var notes = [], records = [], files = [];
+  var selNote = null, saveTimer = null;
+
+  /* ---------- Header, tabs ---------- */
+  $('date').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  $('rDate').value = today();
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var panels = ['notes', 'records', 'docs', 'media', 'settings'];
+  function showTab(name) {
+    tabs.forEach(function (t) { t.setAttribute('aria-selected', t.dataset.tab === name ? 'true' : 'false'); });
+    panels.forEach(function (n) { $('p-' + n).hidden = n !== name; });
+    if (name !== 'settings') { try { localStorage.setItem('js-tab', name); } catch (e) {} }
+  }
+  tabs.forEach(function (t) { t.addEventListener('click', function () { showTab(t.dataset.tab); }); });
+  $('setBtn').addEventListener('click', function () { showTab('settings'); refreshStorage(); window.scrollTo(0, 0); });
+  $('closeSet').addEventListener('click', function () { var t = 'notes'; try { t = localStorage.getItem('js-tab') || 'notes'; } catch (e) {} showTab(t); });
+  try { var st = localStorage.getItem('js-tab'); if (st) showTab(st); } catch (e) {}
+
+  /* ---------- Notes ---------- */
+  function renderNotes() {
+    var box = $('nlist'); box.textContent = '';
+    notes.sort(function (a, b) { return (b.updated || 0) - (a.updated || 0); });
+    if (!notes.length) box.appendChild(el('div', 'empty', 'No notes yet. Tap New note.'));
+    notes.forEach(function (n) {
+      var b = el('button', 'nitem'); b.type = 'button';
+      b.setAttribute('aria-current', n.id === selNote ? 'true' : 'false');
+      b.appendChild(el('b', '', n.title || 'Untitled note'));
+      var snip = (n.body || '').replace(/\s+/g, ' ').slice(0, 80);
+      b.appendChild(el('span', '', fmtDate(n.updated || Date.now()) + (snip ? ' · ' + snip : '')));
+      b.addEventListener('click', function () { openNote(n.id); });
+      box.appendChild(b);
+    });
+  }
+  function openNote(id) {
+    var n = notes.filter(function (x) { return x.id === id; })[0];
+    if (!n) return;
+    selNote = id; $('editor').hidden = false;
+    $('nTitle').value = n.title || ''; $('nBody').value = n.body || '';
+    $('notesBox').dataset.view = 'edit'; say('nStatus', ''); renderNotes();
+  }
+  function closeEditor() { selNote = null; $('editor').hidden = true; $('notesBox').dataset.view = 'list'; renderNotes(); }
+  function saveNoteNow() {
+    clearTimeout(saveTimer); saveTimer = null;
+    var n = notes.filter(function (x) { return x.id === selNote; })[0];
+    if (!n) return Promise.resolve();
+    n.title = $('nTitle').value; n.body = $('nBody').value; n.updated = Date.now();
+    return store.put('notes', n).then(function () { say('nStatus', 'Saved'); }, function (e) { fail(e, 'nStatus'); });
+  }
+  function scheduleSave() { say('nStatus', 'Saving…'); clearTimeout(saveTimer); saveTimer = setTimeout(saveNoteNow, 500); }
+  $('nTitle').addEventListener('input', function () { if (selNote) scheduleSave(); });
+  $('nBody').addEventListener('input', function () { if (selNote) scheduleSave(); });
+  $('newNote').addEventListener('click', function () {
+    var n = { id: uid(), title: '', body: '', created: Date.now(), updated: Date.now() };
+    notes.push(n);
+    store.put('notes', n).catch(function (e) { fail(e, 'nStatus'); });
+    openNote(n.id); $('nTitle').focus();
+  });
+  $('backBtn').addEventListener('click', function () { saveNoteNow().then(closeEditor); });
+  armDelete($('nDelete'), function () {
+    var id = selNote; if (!id) return;
+    clearTimeout(saveTimer);
+    notes = notes.filter(function (n) { return n.id !== id; });
+    closeEditor(); store.del('notes', id);
+  });
+
+  /* ---------- Records ---------- */
+  ['Money', 'Family', 'Work', 'Health', 'Home', 'Other'].forEach(function (c) {
+    var o = el('option', '', c); o.value = c; $('rCat').appendChild(o);
+    var f = el('option', '', c); f.value = c; $('rFilter').appendChild(f);
+  });
+  function renderRecords() {
+    var q = $('rSearch').value.trim().toLowerCase(), f = $('rFilter').value, box = $('recList');
+    box.textContent = '';
+    records.sort(function (a, b) { return (b.date || '').localeCompare(a.date || '') || (b.added || 0) - (a.added || 0); });
+    var shown = records.filter(function (r) { return (!f || r.category === f) && (!q || ((r.title || '') + ' ' + (r.details || '')).toLowerCase().indexOf(q) > -1); });
+    if (!shown.length) box.appendChild(el('li', 'empty', records.length ? 'No records match.' : 'No records yet. Save your first one above.'));
+    shown.forEach(function (r) {
+      var li = el('li', 'item');
+      li.appendChild(el('div', 'name', r.title));
+      var meta = el('div', 'meta', fmtDate(r.date) + ' · '); meta.appendChild(el('span', 'tag', r.category || 'Other'));
+      li.appendChild(meta);
+      if (r.details) li.appendChild(el('div', 'body', r.details));
+      var acts = el('div', 'acts');
+      var del = el('button', 'danger small', 'Delete'); del.type = 'button';
+      armDelete(del, function () { records = records.filter(function (x) { return x.id !== r.id; }); renderRecords(); store.del('records', r.id); });
+      acts.appendChild(del); li.appendChild(acts); box.appendChild(li);
+    });
+  }
+  $('rSearch').addEventListener('input', renderRecords);
+  $('rFilter').addEventListener('change', renderRecords);
+  $('recForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var title = $('rTitle').value.trim();
+    if (!title) { $('rTitle').focus(); return; }
+    var r = { id: uid(), title: title, category: $('rCat').value, date: $('rDate').value || today(), details: $('rDetails').value.trim(), added: Date.now() };
+    records.push(r); renderRecords();
+    store.put('records', r);
+    $('rTitle').value = ''; $('rDetails').value = ''; $('rTitle').focus();
+  });
+
+  /* ---------- Files: documents, photos, videos ---------- */
+  function makeThumb(file) {
+    return new Promise(function (resolve) {
+      var done = false, url = URL.createObjectURL(file);
+      function finish(v) { if (done) return; done = true; URL.revokeObjectURL(url); resolve(v); }
+      setTimeout(function () { finish(null); }, 5000);
+      function draw(src, w, h) {
+        try {
+          var s = 260 / Math.max(w, h, 1); if (s > 1) s = 1;
+          var c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * s)); c.height = Math.max(1, Math.round(h * s));
+          c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+          finish(c.toDataURL('image/jpeg', 0.7));
+        } catch (e) { finish(null); }
+      }
+      if (file.type.indexOf('image/') === 0) {
+        var img = new Image();
+        img.onload = function () { draw(img, img.naturalWidth, img.naturalHeight); };
+        img.onerror = function () { finish(null); };
+        img.src = url;
+      } else if (file.type.indexOf('video/') === 0) {
+        var v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'metadata';
+        v.onloadeddata = function () { try { v.currentTime = Math.min(0.5, (v.duration || 1) / 2); } catch (e) { finish(null); } };
+        v.onseeked = function () { draw(v, v.videoWidth, v.videoHeight); };
+        v.onerror = function () { finish(null); };
+        v.src = url;
+      } else finish(null);
+    });
+  }
+  function addFiles(list, kind, statusId) {
+    var arr = Array.prototype.slice.call(list), done = 0, failed = [];
+    function next() {
+      if (!arr.length) {
+        say(statusId, done + (done === 1 ? ' file added.' : ' files added.') + (failed.length ? ' Not added: ' + failed.join(' ') : ''), failed.length > 0);
+        renderFiles(); refreshStorage(); return Promise.resolve();
+      }
+      var f = arr.shift();
+      say(statusId, 'Saving ' + (f.name || 'file') + '…');
+      var name = f.name || ((kind === 'media' ? 'capture-' : 'scan-') + Date.now());
+      return makeThumb(f).then(function (thumb) {
+        var meta = { id: uid(), kind: kind, name: name, type: f.type || 'application/octet-stream', size: f.size, added: Date.now(), thumb: thumb };
+        return store.put('blobs', { id: meta.id, blob: f }).then(function () { return store.put('files', meta); }).then(function () { files.push(meta); done++; });
+      }).catch(function (e) { failed.push(name + (e && e.name === 'QuotaExceededError' ? ' (storage full).' : ' (could not save).')); }).then(next);
+    }
+    return next();
+  }
+  function bind(inputId, kind, statusId, asMedia) {
+    $(inputId).addEventListener('change', function (e) {
+      var list = e.target.files; if (!list || !list.length) return;
+      addFiles(list, asMedia || kind, statusId).then(function () { $(inputId).value = ''; });
+    });
+  }
+  bind('docIn', 'docs', 'docStatus');
+  bind('scanIn', 'docs', 'docStatus');
+  bind('mediaIn', 'media', 'mediaStatus');
+  bind('photoIn', 'media', 'mediaStatus');
+  bind('videoIn', 'media', 'mediaStatus');
+
+  function getFile(meta) {
+    return store.get('blobs', meta.id).then(function (b) {
+      if (!b) throw new Error('missing');
+      return b.blob.type ? b.blob : new Blob([b.blob], { type: meta.type });
+    });
+  }
+  function saveCopy(meta, statusId) {
+    return getFile(meta).then(function (blob) {
+      var url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = meta.name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    }).catch(function () { say(statusId, 'Could not open that file.', true); });
+  }
+  function shareFile(meta, statusId) {
+    return getFile(meta).then(function (blob) {
+      var f = new File([blob], meta.name, { type: meta.type });
+      return navigator.share({ files: [f], title: meta.name });
+    }).catch(function (e) { if (e && e.name !== 'AbortError') say(statusId, 'Could not share that file.', true); });
+  }
+  function canShare(meta) {
+    try { return !!(navigator.canShare && navigator.share && navigator.canShare({ files: [new File([''], meta.name, { type: meta.type })] })); } catch (e) { return false; }
+  }
+  function removeFile(meta) {
+    files = files.filter(function (x) { return x.id !== meta.id; });
+    renderFiles();
+    return store.del('files', meta.id).then(function () { return store.del('blobs', meta.id); }).then(refreshStorage);
+  }
+
+  function renderFiles() {
+    var docs = files.filter(function (f) { return f.kind === 'docs'; }).sort(function (a, b) { return b.added - a.added; });
+    var media = files.filter(function (f) { return f.kind === 'media'; }).sort(function (a, b) { return b.added - a.added; });
+    var dl = $('docList'); dl.textContent = '';
+    if (!docs.length) dl.appendChild(el('li', 'empty', 'No documents yet. Tap Add documents.'));
+    docs.forEach(function (d) {
+      var li = el('li', 'item');
+      li.appendChild(el('div', 'name', d.name));
+      var ext = (d.name.indexOf('.') > -1 ? d.name.split('.').pop() : 'file').slice(0, 5);
+      var meta = el('div', 'meta', fmtSize(d.size || 0) + ' · ' + fmtDate(d.added) + ' · '); meta.appendChild(el('span', 'tag', ext));
+      li.appendChild(meta);
+      var acts = el('div', 'acts');
+      var open = el('button', 'ghost small', 'Open'); open.type = 'button';
+      open.addEventListener('click', function () {
+        getFile(d).then(function (blob) {
+          var url = URL.createObjectURL(blob);
+          var w = window.open(url, '_blank');
+          if (!w) saveCopy(d, 'docStatus');
+          setTimeout(function () { URL.revokeObjectURL(url); }, 120000);
+        }).catch(function () { say('docStatus', 'Could not open that file.', true); });
+      });
+      var save = el('button', 'ghost small', 'Save copy'); save.type = 'button';
+      save.addEventListener('click', function () { saveCopy(d, 'docStatus'); });
+      acts.appendChild(open); acts.appendChild(save);
+      if (canShare(d)) { var sh = el('button', 'ghost small', 'Share'); sh.type = 'button'; sh.addEventListener('click', function () { shareFile(d, 'docStatus'); }); acts.appendChild(sh); }
+      var del = el('button', 'danger small', 'Delete'); del.type = 'button';
+      armDelete(del, function () { removeFile(d); });
+      acts.appendChild(del); li.appendChild(acts); dl.appendChild(li);
+    });
+
+    var g = $('mediaGrid'); g.textContent = '';
+    if (!media.length) g.appendChild(el('div', 'empty', 'No photos or videos yet.'));
+    media.forEach(function (m) {
+      var b = el('button', 'tile'); b.type = 'button'; b.setAttribute('aria-label', 'Open ' + m.name);
+      if (m.thumb) { var i = document.createElement('img'); i.alt = m.name; i.src = m.thumb; b.appendChild(i); }
+      else b.appendChild(el('div', 'ph', m.name));
+      if (m.type.indexOf('video/') === 0) b.appendChild(el('span', 'play', 'Video'));
+      b.addEventListener('click', function () { openLb(m); });
+      g.appendChild(b);
+    });
+  }
+
+  /* ---------- Viewer ---------- */
+  var lbItem = null, lbUrl = null;
+  function openLb(m) {
+    getFile(m).then(function (blob) {
+      lbItem = m; lbUrl = URL.createObjectURL(blob);
+      $('lbName').textContent = m.name + ' · ' + fmtSize(m.size || 0);
+      var body = $('lbBody'); body.textContent = '';
+      var node;
+      if (m.type.indexOf('video/') === 0) { node = document.createElement('video'); node.controls = true; node.playsInline = true; }
+      else { node = document.createElement('img'); node.alt = m.name; }
+      node.src = lbUrl; body.appendChild(node);
+      $('lbShare').hidden = !canShare(m);
+      $('lb').hidden = false; $('lbClose').focus();
+    }).catch(function () { say('mediaStatus', 'Could not open that file.', true); });
+  }
+  function closeLb() { $('lb').hidden = true; $('lbBody').textContent = ''; if (lbUrl) URL.revokeObjectURL(lbUrl); lbUrl = null; lbItem = null; }
+  $('lbClose').addEventListener('click', closeLb);
+  $('lbSave').addEventListener('click', function () { if (lbItem) saveCopy(lbItem, 'mediaStatus'); });
+  $('lbShare').addEventListener('click', function () { if (lbItem) shareFile(lbItem, 'mediaStatus'); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('lb').hidden) closeLb(); });
+  armDelete($('lbDel'), function () { var m = lbItem; closeLb(); if (m) removeFile(m); });
+
+  /* ---------- Settings: storage, backup ---------- */
+  function refreshStorage() {
+    var info = $('storeInfo');
+    var count = files.length;
+    if (navigator.storage && navigator.storage.estimate) {
+      navigator.storage.estimate().then(function (e) {
+        info.textContent = 'Used by this app: ' + fmtSize(e.usage || 0) + (e.quota ? ' of about ' + fmtSize(e.quota) + ' available' : '') + ' · ' + count + ' files';
+      }, function () { info.textContent = count + ' files stored.'; });
+    } else info.textContent = count + ' files stored.';
+    if (navigator.storage && navigator.storage.persisted) {
+      navigator.storage.persisted().then(function (p) { if (p) { say('persistStatus', 'Protected. Android will not clear this data on its own.'); $('persistBtn').hidden = true; } });
+    }
+  }
+  $('persistBtn').addEventListener('click', function () {
+    if (!navigator.storage || !navigator.storage.persist) { say('persistStatus', 'This browser does not support it.', true); return; }
+    navigator.storage.persist().then(function (ok) {
+      say('persistStatus', ok ? 'Protected. Android will not clear this data on its own.' : 'The browser said no. Install the app from the Chrome menu, then try again.', !ok);
+      if (ok) $('persistBtn').hidden = true;
+    });
+  });
+  $('exportBtn').addEventListener('click', function () {
+    var data = JSON.stringify({ app: 'john-seret', version: 1, exported: new Date().toISOString(), notes: notes, records: records, prefs: prefs }, null, 1);
+    var blob = new Blob([data], { type: 'application/json' }), url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = 'john-seret-backup-' + today() + '.json'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    say('backupStatus', 'Backup saved to your Downloads.');
+  });
+  $('importIn').addEventListener('change', function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    f.text().then(function (t) {
+      var d = JSON.parse(t);
+      if (d.app !== 'john-seret') throw new Error('bad');
+      var added = 0, jobs = [];
+      (d.notes || []).forEach(function (n) { if (n && n.id && !notes.some(function (x) { return x.id === n.id; })) { notes.push(n); jobs.push(store.put('notes', n)); added++; } });
+      (d.records || []).forEach(function (r) { if (r && r.id && !records.some(function (x) { return x.id === r.id; })) { records.push(r); jobs.push(store.put('records', r)); added++; } });
+      if (d.prefs && typeof d.prefs === 'object') { Object.keys(prefs).forEach(function (k) { if (d.prefs[k] !== undefined) prefs[k] = d.prefs[k]; }); applyPrefs(); savePrefs(); renderPrefsUi(); }
+      return Promise.all(jobs).then(function () { renderNotes(); renderRecords(); say('backupStatus', added + ' items restored. Items already here were kept.'); });
+    }).catch(function () { say('backupStatus', 'That is not a John Seret backup file.', true); })
+      .then(function () { $('importIn').value = ''; });
+  });
+
+  /* ---------- Look and lock preferences ---------- */
+  var prefs = { theme: 'auto', font: 'default', accent: 'indigo', lockDelay: 30 };
+  try { var sp = JSON.parse(localStorage.getItem('js-prefs') || '{}'); Object.keys(prefs).forEach(function (k) { if (sp[k] !== undefined) prefs[k] = sp[k]; }); } catch (e) {}
+  var ACCENTS = { indigo: '#3446c8', teal: '#0f766e', rose: '#be185d', amber: '#b45309' };
+  function savePrefs() { try { localStorage.setItem('js-prefs', JSON.stringify(prefs)); } catch (e) {} }
+  function applyPrefs() {
+    var h = document.documentElement;
+    if (prefs.theme === 'light' || prefs.theme === 'dark') h.setAttribute('data-theme', prefs.theme); else h.removeAttribute('data-theme');
+    if (prefs.font !== 'default') h.setAttribute('data-font', prefs.font); else h.removeAttribute('data-font');
+    if (prefs.accent !== 'indigo') h.setAttribute('data-accent', prefs.accent); else h.removeAttribute('data-accent');
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', ACCENTS[prefs.accent] || '#3446c8');
+  }
+  function renderPrefsUi() {
+    $('setTheme').value = prefs.theme; $('setFont').value = prefs.font; $('setDelay').value = String(prefs.lockDelay);
+    Array.prototype.forEach.call($('swatches').children, function (b) { b.setAttribute('aria-pressed', b.dataset.accent === prefs.accent ? 'true' : 'false'); });
+  }
+  Object.keys(ACCENTS).forEach(function (k) {
+    var b = el('button', 'sw'); b.type = 'button'; b.dataset.accent = k; b.style.background = ACCENTS[k];
+    b.setAttribute('aria-label', k.charAt(0).toUpperCase() + k.slice(1)); b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function () { prefs.accent = k; applyPrefs(); savePrefs(); renderPrefsUi(); });
+    $('swatches').appendChild(b);
+  });
+  $('setTheme').addEventListener('change', function () { prefs.theme = $('setTheme').value; applyPrefs(); savePrefs(); });
+  $('setFont').addEventListener('change', function () { prefs.font = $('setFont').value; applyPrefs(); savePrefs(); });
+  $('setDelay').addEventListener('change', function () { prefs.lockDelay = parseInt($('setDelay').value, 10); savePrefs(); });
+  applyPrefs(); renderPrefsUi();
+
+  /* ---------- Screen lock ---------- */
+  var fails = 0, lockUntil = 0;
+  var pin = null, hiddenAt = 0;
+  var canHash = !!(window.crypto && crypto.subtle);
+  function hashPin(p, salt) {
+    var data = new TextEncoder().encode(salt + ':' + p);
+    return crypto.subtle.digest('SHA-256', data).then(function (b) {
+      return Array.prototype.map.call(new Uint8Array(b), function (x) { return x.toString(16).padStart(2, '0'); }).join('');
+    });
+  }
+  function lockNow() { if (!pin) return; saveNoteNow(); $('lockPin').value = ''; $('lockErr').textContent = ''; $('lock').hidden = false; setTimeout(function () { $('lockPin').focus(); }, 50); }
+  function syncPinUi() {
+    $('pinOff').hidden = !pin; $('lockBtn').hidden = !pin;
+    try { if (pin) localStorage.setItem('js-haspin', '1'); else localStorage.removeItem('js-haspin'); } catch (e) {}
+  }
+  $('lockBtn').addEventListener('click', lockNow);
+  $('lockForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!pin) return;
+    var wait = lockUntil - Date.now();
+    if (wait > 0) { $('lockErr').textContent = 'Too many tries. Wait ' + Math.ceil(wait / 1000) + ' seconds.'; return; }
+    hashPin($('lockPin').value, pin.salt).then(function (h) {
+      if (h === pin.hash) { fails = 0; $('lock').hidden = true; $('lockErr').textContent = ''; }
+      else {
+        fails++; $('lockPin').value = '';
+        if (fails >= 5) { fails = 0; lockUntil = Date.now() + 30000; $('lockErr').textContent = 'Too many tries. Wait 30 seconds.'; }
+        else $('lockErr').textContent = 'Wrong PIN. Try again.';
+      }
+    });
+  });
+  $('pinForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = $('pinIn').value;
+    if (!canHash) { say('pinStatus', 'Screen lock needs a secure connection (https).', true); return; }
+    if (!/^\d{4,8}$/.test(v)) { say('pinStatus', 'Use 4 to 8 digits.', true); return; }
+    var salt = uid();
+    hashPin(v, salt).then(function (h) {
+      pin = { id: 'pin', salt: salt, hash: h };
+      return store.put('meta', pin);
+    }).then(function () { $('pinIn').value = ''; say('pinStatus', 'PIN saved.'); syncPinUi(); });
+  });
+  $('pinOff').addEventListener('click', function () {
+    store.del('meta', 'pin').then(function () { pin = null; syncPinUi(); say('pinStatus', 'PIN removed.'); });
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) hiddenAt = Date.now();
+    else if (pin && hiddenAt && prefs.lockDelay >= 0 && Date.now() - hiddenAt >= prefs.lockDelay * 1000) lockNow();
+  });
+
+  /* ---------- Install ---------- */
+  var deferred = null;
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; if (!standalone) $('installBtn').hidden = false; });
+  window.addEventListener('appinstalled', function () { $('installBtn').hidden = true; deferred = null; });
+  $('installBtn').addEventListener('click', function () {
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function () { deferred = null; $('installBtn').hidden = true; });
+  });
+  if ('serviceWorker' in navigator) { window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); }); }
+
+  /* ---------- Start ---------- */
+  try { if (localStorage.getItem('js-haspin')) $('lock').hidden = false; } catch (e) {}
+  renderNotes(); renderRecords(); renderFiles();
+  Promise.all([store.all('notes'), store.all('records'), store.all('files'), store.get('meta', 'pin')]).then(function (r) {
+    notes = r[0]; records = r[1]; files = r[2]; pin = r[3] || null;
+    renderNotes(); renderRecords(); renderFiles(); syncPinUi();
+    if (pin) lockNow(); else $('lock').hidden = true;
+  }).catch(function () {
+    say('nStatus', 'This browser could not open its storage. Private browsing mode can cause this.', true);
+  });
+})();
+</script>
+</body>
+</html>
